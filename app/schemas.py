@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -27,3 +28,9 @@ class TaskCreate(BaseModel):
             )
 
         return self
+
+class TaskRead(TaskCreate):
+    id: int
+    status: Literal["open", "closed"]
+    created_at: datetime
+    updated_at: datetime

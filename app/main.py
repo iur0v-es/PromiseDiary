@@ -2,8 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app import repository
 from app.database import init_db
-from app.schemas import TaskCreate
+from app.schemas import TaskCreate, TaskRead
 
 
 @asynccontextmanager
@@ -23,6 +24,6 @@ def root():
     return {"message": "Дневник обещаний работает"}
 
 
-@app.post("/tasks")
+@app.post("/tasks", response_model=TaskRead, status_code=201)
 def create_task(task: TaskCreate):
-    return task
+    return repository.create_task(task)
