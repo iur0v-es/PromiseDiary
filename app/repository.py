@@ -63,3 +63,15 @@ def get_tasks() -> TaskList:
             tasks.append(task)
 
     return TaskList(tasks=tasks, warnings=warnings)
+
+def get_task(task_id: int) -> TaskRead | None:
+    with get_connection() as connection:
+        row = connection.execute(
+            "SELECT * FROM tasks WHERE id = ?",
+            (task_id,),
+        ).fetchone()
+
+    if row is None:
+        return None
+
+    return TaskRead.model_validate(dict(row))
