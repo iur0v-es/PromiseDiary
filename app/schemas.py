@@ -44,3 +44,27 @@ class TaskUpdate(TaskCreate):
 
 class TaskStatusUpdate(BaseModel):
     status: Literal["open", "closed"]
+
+class CommentCreate(BaseModel):
+    text: str = Field(min_length=1, max_length=10000)
+
+    @field_validator("text")
+    @classmethod
+    def validate_text(cls, value: str) -> str:
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Комментарий не может быть пустым")
+
+        return value
+
+
+class CommentRead(CommentCreate):
+    id: int
+    task_id: int
+    created_at: datetime
+
+
+class CommentList(BaseModel):
+    comments: list[CommentRead]
+    warnings: list[str] = Field(default_factory=list)

@@ -16,6 +16,8 @@ def get_connection():
     connection.row_factory = sqlite3.Row
 
     try:
+        connection.execute("PRAGMA foreign_keys = ON")
+
         with connection:
             yield connection
     finally:
@@ -35,5 +37,14 @@ def init_db():
                     CHECK (status IN ('open', 'closed')),
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
+            )
+        """)
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS comments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                task_id INTEGER NOT NULL,
+                text TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (task_id) REFERENCES tasks(id)
             )
         """)
