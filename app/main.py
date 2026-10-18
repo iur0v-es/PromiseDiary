@@ -13,6 +13,7 @@ from app.schemas import (
     TaskStatusUpdate,
     CommentCreate,
     CommentRead,
+    CommentList
 )
 
 
@@ -117,3 +118,25 @@ def create_comment(task_id: int, comment: CommentCreate):
         )
 
     return created_comment
+
+@app.get(
+    "/tasks/{task_id}/comments",
+    response_model=CommentList,
+)
+def get_comments(task_id: int):
+    try:
+        result = repository.get_comments(task_id)
+    except ValidationError:
+        raise HTTPException(
+            status_code=409,
+            detail="Запись дела повреждена. "
+                   "Исходные данные сохранены в базе.",
+        ) from None
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Дело не найдено",
+        )
+
+    return result

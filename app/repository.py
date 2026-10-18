@@ -3,7 +3,7 @@ from pydantic import ValidationError
 
 from app.database import get_connection
 from app.schemas import TaskCreate, TaskRead, TaskList, TaskUpdate
-from app.schemas import CommentCreate, CommentRead
+from app.schemas import CommentCreate, CommentRead, CommentList
 
 def create_task(task: TaskCreate) -> TaskRead:
     now = datetime.now(timezone.utc).isoformat()
@@ -176,3 +176,44 @@ def create_comment(
         ).fetchone()
 
         return CommentRead.model_validate(dict(row))
+
+def get_comments(task_id: int) -> CommentList | None:
+    with get_connection() as connection:
+        task_row = connection.execute(
+            "SELECT * FROM tasks WHERE id = ?",
+            (task_id,),
+        ).fetchone()
+
+        if task_row is None:
+            return None
+
+        TaskRead.model_validate(dict(task_row))
+
+        rows = connection.execute(
+            """
+            SELECT *
+            FROM comments
+            WHERE task_id = ?
+            ORDER BY id
+            """,
+            (task_id,),
+        ).fetchall()
+
+    comments = []
+    warnings = []
+
+    for row in rows:
+        try:
+            comment = CommentRead.model_validate(dict(row))
+        except ValidationError:
+            warnings.append(
+                f"Комментарий №{row['id']} повреждён и пропущен. "
+                "Исходная запись сохранена в базе."
+            )
+        else:
+            comments.append(comment)
+
+    return CommentList(
+        comments=comments,
+        warnings=warnings,
+    )
