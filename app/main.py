@@ -1,5 +1,9 @@
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, HTTPException
 from pydantic import ValidationError
 from datetime import date
@@ -29,11 +33,18 @@ app = FastAPI(
     title="Дневник обещаний",
     lifespan=lifespan,
 )
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+
+app.mount(
+    "/static",
+    StaticFiles(directory=STATIC_DIR),
+    name="static",
+)
 
 
-@app.get("/")
+@app.get("/", response_class=FileResponse)
 def root():
-    return {"message": "Дневник обещаний работает"}
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.post("/tasks", response_model=TaskRead, status_code=201)

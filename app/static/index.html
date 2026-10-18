@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Дневник обещаний</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
+</head>
+<body>
+    <main>
+        <header class="page-header">
+    <div>
+        <h1>Дневник обещаний</h1>
+        <p>Дела, сроки и история договорённостей</p>
+    </div>
+
+    <button id="new-task" type="button" class="create-button">
+        ＋ Создать новое дело
+    </button>
+</header>
+
+        <form id="filters" class="panel">
+            <label>
+                Поиск по названию и описанию
+                <input id="search" type="search" placeholder="Найти дело">
+            </label>
+
+            <div class="filter-row">
+                <label>
+                    Статус
+                    <select id="status-filter">
+                        <option value="">Все</option>
+                        <option value="open">Открытые</option>
+                        <option value="closed">Закрытые</option>
+                    </select>
+                </label>
+
+                <label>
+                    Период по сроку завершения
+                    <select id="period">
+                        <option value="all">Все даты</option>
+                        <option value="day">День</option>
+                        <option value="week">Неделя</option>
+                        <option value="month">Месяц</option>
+                    </select>
+                </label>
+
+                <label>
+                    Дата периода
+                    <input id="period-date" type="date" disabled>
+                </label>
+            </div>
+
+            <button type="submit">Показать дела</button>
+        </form>
+
+        <p id="message" role="status" aria-live="polite"></p>
+        <div id="warnings" role="status"></div>
+
+<section class="panel">
+    <h2>Несохранённые изменения</h2>
+
+    <label>
+        Продолжить черновик
+        <select id="draft-select">
+            <option value="">Выберите черновик</option>
+        </select>
+    </label>
+
+    <p id="draft-warning" role="status"></p>
+</section>
+
+<section id="editor" class="panel" hidden>
+    <h2 id="editor-title">Новое дело</h2>
+
+    <form id="task-form" novalidate>
+        <label>
+            Название
+            <input id="task-title" maxlength="200" required>
+        </label>
+
+        <label>
+            Описание
+            <textarea id="task-description"
+                      rows="4"
+                      maxlength="10000"></textarea>
+        </label>
+
+        <div class="filter-row">
+            <label>
+                Дата обещания
+                <input id="task-promised" type="date" required>
+            </label>
+
+            <label>
+                Срок завершения
+                <input id="task-due" type="date" required>
+            </label>
+        </div>
+
+        <div class="actions">
+            <button id="save-task" type="submit">Сохранить</button>
+            <button id="toggle-status" type="button" hidden>Закрыть дело</button>
+            <button id="reset-task" type="button" hidden>Отменить правки</button>
+            <button id="hide-editor" type="button">Скрыть карточку</button>
+        </div>
+
+        <p id="draft-status" role="status"></p>
+        <p id="task-metadata"></p>
+    </form>
+
+    <section id="comment-section" hidden>
+        <h3>Комментарии</h3>
+        <p id="comment-warning" role="status"></p>
+        <div id="comments"></div>
+
+        <form id="comment-form" novalidate>
+            <label>
+                Новый комментарий
+                <textarea id="comment-text"
+                          rows="3"
+                          maxlength="10000"
+                          required></textarea>
+            </label>
+
+            <button id="save-comment" type="submit">
+                Добавить комментарий
+            </button>
+        </form>
+    </section>
+</section>
+
+        <section class="panel">
+            <h2>Мои дела</h2>
+            <p id="period-caption"></p>
+            <div id="task-list">Загрузка…</div>
+        </section>
+    </main>
+</body>
+</html>
