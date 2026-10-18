@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from app import repository
 from app.database import init_db
-from app.schemas import TaskCreate, TaskRead
+from app.schemas import TaskCreate, TaskRead, TaskList
 
 
 @asynccontextmanager
@@ -27,3 +27,7 @@ def root():
 @app.post("/tasks", response_model=TaskRead, status_code=201)
 def create_task(task: TaskCreate):
     return repository.create_task(task)
+
+@app.get("/tasks", response_model=TaskList)
+def get_tasks():
+    return repository.get_tasks()

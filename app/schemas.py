@@ -34,3 +34,7 @@ class TaskRead(TaskCreate):
     status: Literal["open", "closed"]
     created_at: datetime
     updated_at: datetime
+
+class TaskList(BaseModel):
+    tasks: list[TaskRead]
+    warnings: list[str] = Field(default_factory=list)
