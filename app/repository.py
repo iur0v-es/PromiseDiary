@@ -112,3 +112,30 @@ def update_task(
         ).fetchone()
 
         return TaskRead.model_validate(dict(row))
+
+def update_task_status(
+    task_id: int,
+    status: str,
+) -> TaskRead | None:
+    now = datetime.now(timezone.utc).isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.execute(
+            """
+            UPDATE tasks
+            SET status = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (status, now, task_id),
+        )
+
+        if cursor.rowcount == 0:
+            return None
+
+        row = connection.execute(
+            "SELECT * FROM tasks WHERE id = ?",
+            (task_id,),
+        ).fetchone()
+
+        return TaskRead.model_validate(dict(row))

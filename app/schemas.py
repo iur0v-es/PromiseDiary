@@ -41,3 +41,6 @@ class TaskList(BaseModel):
 
 class TaskUpdate(TaskCreate):
     pass
+
+class TaskStatusUpdate(BaseModel):
+    status: Literal["open", "closed"]

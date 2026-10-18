@@ -5,7 +5,13 @@ from pydantic import ValidationError
 
 from app import repository
 from app.database import init_db
-from app.schemas import TaskCreate, TaskRead, TaskList, TaskUpdate
+from app.schemas import (
+    TaskCreate,
+    TaskRead,
+    TaskList,
+    TaskUpdate,
+    TaskStatusUpdate,
+)
 
 
 @asynccontextmanager
@@ -68,3 +74,21 @@ def update_task(task_id: int, task: TaskUpdate):
         )
 
     return updated_task
+
+@app.patch("/tasks/{task_id}/status", response_model=TaskRead)
+def update_task_status(task_id: int, data: TaskStatusUpdate):
+    try:
+        task = repository.update_task_status(task_id, data.status)
+    except ValidationError:
+        raise HTTPException(
+            status_code=409,
+            detail="Запись дела повреждена. Изменение статуса отменено.",
+        ) from None
+
+    if task is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Дело не найдено",
+        )
+
+    return task
