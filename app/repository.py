@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pydantic import ValidationError
 
 from app.database import get_connection
@@ -38,9 +38,15 @@ def create_task(task: TaskCreate) -> TaskRead:
 
         return TaskRead.model_validate(dict(row))
 
-def get_tasks() -> TaskList:
+def get_tasks(
+    q: str = "",
+    status: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+) -> TaskList:
     tasks = []
     warnings = []
+    query = q.strip().casefold()
 
     with get_connection() as connection:
         rows = connection.execute(
@@ -59,8 +65,25 @@ def get_tasks() -> TaskList:
                 f"Дело №{row['id']} повреждено и пропущено. "
                 "Исходная запись сохранена в базе."
             )
-        else:
-            tasks.append(task)
+            continue
+
+        if status is not None and task.status != status:
+            continue
+
+        if date_from is not None and task.due_on < date_from:
+            continue
+
+        if date_to is not None and task.due_on > date_to:
+            continue
+
+        searchable_text = (
+            f"{task.title}\n{task.description}"
+        ).casefold()
+
+        if query and query not in searchable_text:
+            continue
+
+        tasks.append(task)
 
     return TaskList(tasks=tasks, warnings=warnings)
 

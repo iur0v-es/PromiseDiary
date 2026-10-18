@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from pydantic import ValidationError
+from datetime import date
+from typing import Literal
 
 from app import repository
 from app.database import init_db
@@ -39,8 +41,28 @@ def create_task(task: TaskCreate):
     return repository.create_task(task)
 
 @app.get("/tasks", response_model=TaskList)
-def get_tasks():
-    return repository.get_tasks()
+def get_tasks(
+    q: str = "",
+    status: Literal["open", "closed"] | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+):
+    if (
+        date_from is not None
+        and date_to is not None
+        and date_from > date_to
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="Начало периода не может быть позже конца",
+        )
+
+    return repository.get_tasks(
+        q=q,
+        status=status,
+        date_from=date_from,
+        date_to=date_to,
+    )
 
 @app.get("/tasks/{task_id}", response_model=TaskRead)
 def get_task(task_id: int):
