@@ -3,7 +3,7 @@ from pydantic import ValidationError
 
 from app.database import get_connection
 from app.schemas import TaskCreate, TaskRead, TaskList, TaskUpdate
-
+from app.schemas import CommentCreate, CommentRead
 
 def create_task(task: TaskCreate) -> TaskRead:
     now = datetime.now(timezone.utc).isoformat()
@@ -139,3 +139,40 @@ def update_task_status(
         ).fetchone()
 
         return TaskRead.model_validate(dict(row))
+
+def create_comment(
+    task_id: int,
+    comment: CommentCreate,
+) -> CommentRead | None:
+    now = datetime.now(timezone.utc).isoformat()
+
+    with get_connection() as connection:
+        task_row = connection.execute(
+            "SELECT * FROM tasks WHERE id = ?",
+            (task_id,),
+        ).fetchone()
+
+        if task_row is None:
+            return None
+
+        TaskRead.model_validate(dict(task_row))
+
+        cursor = connection.execute(
+            """
+            INSERT INTO comments (task_id, text, created_at)
+            VALUES (?, ?, ?)
+            """,
+            (task_id, comment.text, now),
+        )
+
+        connection.execute(
+            "UPDATE tasks SET updated_at = ? WHERE id = ?",
+            (now, task_id),
+        )
+
+        row = connection.execute(
+            "SELECT * FROM comments WHERE id = ?",
+            (cursor.lastrowid,),
+        ).fetchone()
+
+        return CommentRead.model_validate(dict(row))

@@ -11,6 +11,8 @@ from app.schemas import (
     TaskList,
     TaskUpdate,
     TaskStatusUpdate,
+    CommentCreate,
+    CommentRead,
 )
 
 
@@ -92,3 +94,26 @@ def update_task_status(task_id: int, data: TaskStatusUpdate):
         )
 
     return task
+
+@app.post(
+    "/tasks/{task_id}/comments",
+    response_model=CommentRead,
+    status_code=201,
+)
+def create_comment(task_id: int, comment: CommentCreate):
+    try:
+        created_comment = repository.create_comment(task_id, comment)
+    except ValidationError:
+        raise HTTPException(
+            status_code=409,
+            detail="Данные дела или комментария повреждены. "
+                   "Добавление отменено.",
+        ) from None
+
+    if created_comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Дело не найдено",
+        )
+
+    return created_comment
