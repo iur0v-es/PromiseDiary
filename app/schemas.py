@@ -38,3 +38,6 @@ class TaskRead(TaskCreate):
 class TaskList(BaseModel):
     tasks: list[TaskRead]
     warnings: list[str] = Field(default_factory=list)
+
+class TaskUpdate(TaskCreate):
+    pass

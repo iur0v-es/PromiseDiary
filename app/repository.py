@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from pydantic import ValidationError
 
 from app.database import get_connection
-from app.schemas import TaskCreate, TaskRead, TaskList
+from app.schemas import TaskCreate, TaskRead, TaskList, TaskUpdate
 
 
 def create_task(task: TaskCreate) -> TaskRead:
@@ -75,3 +75,40 @@ def get_task(task_id: int) -> TaskRead | None:
         return None
 
     return TaskRead.model_validate(dict(row))
+
+def update_task(
+    task_id: int,
+    task: TaskUpdate,
+) -> TaskRead | None:
+    now = datetime.now(timezone.utc).isoformat()
+
+    with get_connection() as connection:
+        cursor = connection.execute(
+            """
+            UPDATE tasks
+            SET title = ?,
+                description = ?,
+                promised_on = ?,
+                due_on = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                task.title,
+                task.description,
+                task.promised_on.isoformat(),
+                task.due_on.isoformat(),
+                now,
+                task_id,
+            ),
+        )
+
+        if cursor.rowcount == 0:
+            return None
+
+        row = connection.execute(
+            "SELECT * FROM tasks WHERE id = ?",
+            (task_id,),
+        ).fetchone()
+
+        return TaskRead.model_validate(dict(row))
